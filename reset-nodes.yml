@@ -1,0 +1,55 @@
+- import_playbook: globals.yml
+
+- hosts: all
+  become: yes
+  become_user: root
+  user: ubuntu
+  tasks:
+    - name: reset the node
+      shell: kubeadm reset --force --cri-socket={{ hostvars[inventory_hostname]['cri_socket'] }}
+
+    - name: clean cni
+      file:
+        path: /etc/cni/net.d
+        state: absent
+
+    - name: reset ip tables
+      shell: |
+        iptables -F
+        iptables -t nat -F
+        iptables -t mangle -F
+        iptables -X
+
+    - name: reset ipvs tables
+      shell: ipvsadm --clear
+ 
+    - name: delete kube config
+      become: yes
+      become_user: ubuntu
+      file:
+        path: $HOM/.kube/config
+        state: absent
+
+    - name: daemon reload
+      shell:  systemctl daemon-reload
+      ignore_errors: true
+
+    - name: stop kubelet
+      shell: systemctl stop kubelet
+      ignore_errors: true
+ 
+    - name: kill kube-scheduler
+      shell: pkill kube-scheduler
+      ignore_errors: true
+      failed_when: false
+
+    - name: kill kube-controller
+      shell: pkill kube-controller
+      ignore_errors: true
+      failed_when: false
+
+    - name: kill kube-apiserver
+      shell: pkill kube-apiserver
+      ignore_errors: true
+      failed_when: false
+

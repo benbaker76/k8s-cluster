@@ -1,0 +1,102 @@
+- hosts: all
+  become: yes
+  become_user: root
+  user: ubuntu
+  tasks:
+    - name: create docker config dir
+      file: path=/etc/docker state=directory
+ 
+    - name: add docker apt key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: add docker apt repo
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu jammy stable
+        state: present
+        filename: docker
+
+    - name: remove old versions of docker
+      apt:
+        pkg:
+          - docker
+          - docker-engine
+          - docker.io
+          - containerd
+          - runc
+        state: absent
+        autoremove: yes
+
+    - name: install docker
+      apt:
+        pkg:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-compose-plugin 
+        update_cache: yes
+
+    - name: set docker to systemd driver
+      copy:
+        dest: /etc/docker/daemon.json
+        content: |
+          {
+            "exec-opts": ["native.cgroupdriver=systemd"],
+            "log-driver": "json-file",
+            "log-opts": {
+              "max-size": "100m"
+            },
+            "storage-driver": "overlay2"
+          }
+
+    - name: create docker.service.d directory
+      file:
+        path: /etc/systemd/system/docker.service.d
+        state: directory
+
+    - name: install cri-dockerd
+      unarchive:
+        src: https://github.com/Mirantis/cri-dockerd/releases/download/v0.2.3/cri-dockerd-0.2.3.amd64.tgz
+        dest: /usr/bin
+        extra_opts:
+          - --strip=1
+        remote_src: yes
+        owner: root
+        group: root        
+        mode: 0755
+
+    - name: copy cri-dockerd
+      copy:
+        src: /usr/bin/cri-dockerd
+        dest: /usr/local/bin/cri-dockerd
+        remote_src: yes
+
+    - name: install cri-docker.service
+      get_url:
+        url: https://raw.githubusercontent.com/Mirantis/cri-dockerd/master/packaging/systemd/cri-docker.service
+        dest: /etc/systemd/system/
+        owner: root
+
+    - name: install cri-docker.socket
+      get_url:
+        url: https://raw.githubusercontent.com/Mirantis/cri-dockerd/master/packaging/systemd/cri-docker.socket
+        dest: /etc/systemd/system/
+        owner: root
+
+    - ini_file:
+        path: /etc/systemd/system/cri-docker.service
+        section: Service
+        option: ExecStart
+        value: /usr/bin/cri-dockerd --pod-infra-container-image=k8s.gcr.io/pause:3.6 --network-plugin=cni
+
+    - name: restart services
+      systemd:
+        name: "{{ item }}"
+        daemon_reload: yes
+        enabled: yes
+        state: restarted
+      ignore_errors: true
+      loop:
+        - docker
+        - cri-docker

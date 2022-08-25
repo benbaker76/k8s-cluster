@@ -1,0 +1,15 @@
+- hosts: control_plane
+  become: yes
+  become_user: ubuntu
+  user: ubuntu
+  tasks:
+    - name: copy nginx.yml to $HOME
+      copy:
+        src: ./nginx.yml
+        dest: $HOME
+
+    - name: install nginx
+      shell: kubectl apply -f nginx.yaml --v=5 > nginx.txt
+      args:
+        chdir: $HOME
+

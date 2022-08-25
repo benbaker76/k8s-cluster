@@ -1,0 +1,46 @@
+- import_playbook: globals.yml
+
+- hosts: control_plane
+  become: yes
+  become_user: root
+  user: ubuntu
+  gather_facts: false
+  tasks:
+    - name: get join command
+      become: yes
+      become_user: ubuntu
+      shell: kubeadm token create --print-join-command --v=5
+      register: join_command_raw
+
+    - name: set join command
+      become: yes
+      become_user: ubuntu
+      set_fact:
+        join_command: "{{ join_command_raw.stdout_lines[0] }}"
+
+- hosts: workers
+  become: yes
+  become_user: root
+  user: ubuntu
+  tasks:
+    - debug: msg="{{ hostvars['mycluster-cp1'].join_command }} --node-name={{ inventory_hostname }} --cri-socket={{ hostvars[inventory_hostname]['pod_network_cidr'] }} --ignore-preflight-errors=all --v=5 > kubeadm_cp_join.txt"
+
+    - name: join cluster
+      shell: "{{ hostvars['mycluster-cp1'].join_command }} --node-name={{ inventory_hostname }} --cri-socket={{ hostvars[inventory_hostname]['cri_socket'] }} --ignore-preflight-errors=all --v=5 > kubeadm_cp_join.txt"
+      args:
+        chdir: $HOME
+
+    - name: restart services
+      systemd:
+        name: "{{ item }}"
+        daemon_reload: yes
+        enabled: yes
+        state: restarted
+      ignore_errors: true
+      loop:
+        - crio
+        - containerd
+        - docker
+        - cri-docker
+        - kubelet
+

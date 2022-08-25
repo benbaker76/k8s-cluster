@@ -1,0 +1,11 @@
+- hosts: control_plane
+  become: yes
+  become_user: ubuntu
+  user: ubuntu
+  tasks:
+    - name: install weave-scope
+      shell: kubectl apply -f https://cloud.weave.works/launch/k8s/weavescope.yaml?k8s-service-type=NodePort
+      
+    - name: wait for weave-scope ready
+      shell: kubectl wait --for=condition=ready pod -n weave -l app=weave-scope
+

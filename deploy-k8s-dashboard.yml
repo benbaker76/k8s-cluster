@@ -1,0 +1,45 @@
+- hosts: control_plane
+  become: yes
+  become_user: ubuntu
+  user: ubuntu
+  tasks:
+    - name: download k8s dashboard
+      get_url:
+        url: https://raw.githubusercontent.com/kubernetes/dashboard/v2.6.0/aio/deploy/recommended.yaml
+        dest: $HOME/deploy-k8s-dashboard.yml
+
+    - name: add NodePort
+      lineinfile: 
+        path: $HOME/deploy-k8s-dashboard.yml
+        insertafter: "targetPort: 8443"
+        line: "      nodePort: 32001\n  type: NodePort"
+
+    - name: install k8s dashboard
+      shell: kubectl apply -f deploy-k8s-dashboard.yml
+      args:
+        chdir: $HOME
+
+    - name: wait for metrics-server ready
+      shell: kubectl wait --for=condition=ready pod -n kube-system -l k8s-app=metrics-server
+
+    - name: copy k8s-dashboard-adminuser.yml to $HOME
+      copy:
+        src: ./k8s-dashboard-adminuser.yml
+        dest: $HOME
+
+    - name: install k8s dashboard admin user
+      shell: kubectl apply -f k8s-dashboard-adminuser.yml --v=5 > k8s_dashboard_adminuser.txt
+      args:
+        chdir: $HOME
+
+    - name: create k8s dashboard admin-user token
+      shell: kubectl -n kubernetes-dashboard create token admin-user --v=5
+      register: k8s_dashboard_token
+
+    - name: set token command
+      set_fact:
+        k8s_dashboard_token: "{{ k8s_dashboard_token.stdout_lines[0] }}"
+
+    - debug:
+        var=hostvars['mycluster-cp1'].k8s_dashboard_token
+

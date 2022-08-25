@@ -1,0 +1,21 @@
+- hosts: control_plane
+  become: yes
+  become_user: ubuntu
+  user: ubuntu
+  tasks:
+    - name: download metrics-server
+      get_url:
+        url: https://github.com/kubernetes-sigs/metrics-server/releases/download/v0.6.1/components.yaml
+        dest: $HOME/deploy-metrics-server.yml
+
+    - name: add --kubelet-insecure-tls arg
+      lineinfile: 
+        path: $HOME/deploy-metrics-server.yml
+        insertafter: "args:"
+        line: "        - --kubelet-insecure-tls"
+
+    - name: install metrics-server
+      shell: kubectl apply -f deploy-metrics-server.yml --v=5 > deploy_metrics_server.txt
+      args:
+        chdir: $HOME
+

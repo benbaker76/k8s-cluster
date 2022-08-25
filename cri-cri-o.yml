@@ -1,0 +1,45 @@
+- hosts: all
+  become: yes
+  become_user: root
+  user: ubuntu
+  tasks:
+    - name: install runc
+      get_url:
+        url: https://github.com/opencontainers/runc/releases/download/v1.1.3/runc.amd64
+        dest: /usr/local/bin/runc
+        mode: 0755
+        owner: root
+
+    - name: add cri-o apt key
+      apt_key:
+        url: https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:1.24/xUbuntu_22.04/Release.key
+        state: present
+
+    - name: add cri-o apt repo
+      apt_repository:
+        repo: deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/1.24/xUbuntu_22.04/ /
+        state: present
+        filename: cri-o.list
+
+    - name: add libcontainer apt key
+      apt_key:
+        url: https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable/xUbuntu_22.04/Release.key
+        state: present
+
+    - name: add libcontainer apt repo
+      apt_repository:
+        repo: deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_22.04/ /
+        state: present
+        filename: libcontainers.list
+
+    - name: install cri-o packages
+      apt:
+        pkg:
+        - cri-o
+        - cri-o-runc
+
+    - name: restart cri-o
+      systemd:
+        name: crio
+        state: restarted
+

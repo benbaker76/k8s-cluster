@@ -1,0 +1,135 @@
+- import_playbook: globals.yml
+- import_playbook: reset-nodes.yml
+
+- hosts: mycluster-cp1
+  become: yes
+  become_user: root
+  user: ubuntu
+  tasks:
+    - name: restart services
+      systemd:
+        name: "{{ item }}"
+        daemon_reload: yes
+        enabled: yes
+        state: restarted
+      ignore_errors: true
+      loop:
+        - crio
+        - containerd
+        - docker
+        - cri-docker
+
+    - name: initialize the node
+      shell: kubeadm init --control-plane-endpoint={{ hostvars[inventory_hostname]['cp_endpoint'] }} --kubernetes-version={{ hostvars[inventory_hostname]['k8s_version'] }} --node-name={{ inventory_hostname }} --pod-network-cidr={{ hostvars[inventory_hostname]['pod_network_cidr'] }} --service-cidr={{ hostvars[inventory_hostname]['service_cidr'] }} --cri-socket={{ hostvars[inventory_hostname]['cri_socket'] }} --v=9 > kubeadm_init.txt
+      args:
+        chdir: $HOME
+
+    - name: create .kube directory
+      become: yes
+      become_user: ubuntu
+      file:
+        path: $HOME/.kube
+        state: directory
+        mode: 0755
+
+    - name: copy admin.conf to user's kube config
+      copy:
+        src: /etc/kubernetes/admin.conf
+        dest: /home/ubuntu/.kube/config
+        owner: ubuntu
+        mode: 0600
+        remote_src: yes
+
+    - name: wait for control-plane port 6443
+      wait_for:
+        host: 127.0.0.1
+        port: 6443
+        delay: 1
+        connect_timeout: 60
+        timeout: 300
+
+    - name: install cni
+      become: yes
+      become_user: ubuntu
+      shell: kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml --v=5 > calico.txt
+      args:
+        chdir: $HOME
+      register: result
+      until: result.rc == 0
+      retries: 10
+      delay: 20
+
+    - name: set calico env variables
+      become: yes
+      become_user: ubuntu
+      shell: kubectl set env daemonset/calico-node -n kube-system IP_AUTODETECTION_METHOD=interface={{ hostvars[inventory_hostname]['interface'] }}
+
+    - name: upload certs
+      become: yes
+      become_user: ubuntu
+      shell: sudo kubeadm init phase upload-certs --upload-certs --v=5
+      register: certificate_key_raw
+
+    - name: set certificate key
+      become: yes
+      become_user: ubuntu
+      set_fact:
+        certificate_key: "{{ certificate_key_raw.stdout_lines[2] }}"
+
+    - name: get join command
+      become: yes
+      become_user: ubuntu
+      shell: kubeadm token create --print-join-command --v=5
+      register: join_command_raw
+
+    - name: set join command
+      become: yes
+      become_user: ubuntu
+      set_fact:
+        join_command: "{{ join_command_raw.stdout_lines[0] }}"
+
+    - debug: msg="{{ hostvars['mycluster-cp1'].join_command }} --node-name={{ inventory_hostname }} --cri-socket={{ hostvars[inventory_hostname]['pod_network_cidr'] }} --certificate-key={{ hostvars['mycluster-cp1'].certificate_key }} --control-plane --ignore-preflight-errors=all --v=5 > kubeadm_cp_join.txt"
+ 
+- hosts: control_plane
+  become: yes
+  become_user: root
+  user: ubuntu
+  tasks:
+    - name: join cluster
+      shell: "{{ hostvars['mycluster-cp1'].join_command }} --node-name={{ inventory_hostname }} --cri-socket={{ hostvars[inventory_hostname]['cri_socket'] }} --certificate-key={{ hostvars['mycluster-cp1'].certificate_key }} --control-plane --ignore-preflight-errors=all --v=5 > kubeadm_cp_join.txt"
+      args:
+        chdir: $HOME
+      when: inventory_hostname != "mycluster-cp1"
+
+    - name: create .kube directory
+      become: yes
+      become_user: ubuntu
+      file:
+        path: $HOME/.kube
+        state: directory
+        mode: 0755
+      when: inventory_hostname != "mycluster-cp1"
+
+    - name: copy admin.conf to user's kube config
+      copy:
+        src: /etc/kubernetes/admin.conf
+        dest: /home/ubuntu/.kube/config
+        owner: ubuntu
+        mode: 0600
+        remote_src: yes
+      when: inventory_hostname != "mycluster-cp1"
+
+    - name: remove taint on control-plane
+      become: yes
+      become_user: ubuntu
+      shell: kubectl taint nodes --overwrite --all node-role.kubernetes.io/master- node-role.kubernetes.io/control-plane-
+      ignore_errors: true
+
+    - name: restart kubelet
+      systemd:
+        name: kubelet
+        daemon_reload: yes
+        enabled: yes
+        state: restarted
+      ignore_errors: true
+

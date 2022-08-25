@@ -1,0 +1,27 @@
+- hosts: all
+  become: yes
+  become_user: root
+  user: ubuntu
+  tasks:
+    - name: install containerd
+      apt:
+        name: containerd
+        state: present
+        force: yes
+
+    - name: set containerd defaults
+      shell: |
+        mkdir -p /etc/containerd
+        containerd config default > /etc/containerd/config.toml
+
+    - name: set cgroup driver to systemd
+      replace:
+        path: /etc/containerd/config.toml
+        regexp: SystemdCgroup = false
+        replace: SystemdCgroup = true
+
+    - name: restart containerd
+      systemd:
+        name: containerd
+        state: restarted
+
