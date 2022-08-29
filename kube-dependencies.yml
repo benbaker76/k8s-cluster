@@ -146,6 +146,9 @@
           export KUBE_EDITOR=nano
         create: true
 
+    - name: set crictl endpoint
+      shell: crictl config --set runtime-endpoint={{ hostvars[inventory_hostname]['cri_socket'] }} --set image-endpoint={{ hostvars[inventory_hostname]['cri_socket'] }}
+
 #- import_playbook: cri-cri-o.yml
 - import_playbook: cri-containerd.yml
 #- import_playbook: cri-docker.yml
