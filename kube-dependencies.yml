@@ -149,7 +149,12 @@
     - name: set crictl endpoint
       shell: crictl config --set runtime-endpoint={{ hostvars[inventory_hostname]['cri_socket'] }} --set image-endpoint={{ hostvars[inventory_hostname]['cri_socket'] }}
 
-#- import_playbook: cri-cri-o.yml
+- import_playbook: cri-cri-o.yml
+  when: hostvars[inventory_hostname]['cri_socket'] == 'unix:///var/run/crio/crio.sock'
+
 - import_playbook: cri-containerd.yml
-#- import_playbook: cri-docker.yml
+  when: hostvars[inventory_hostname]['cri_socket'] == 'unix:///run/containerd/containerd.sock'
+
+- import_playbook: cri-docker.yml
+  when: hostvars[inventory_hostname]['cri_socket'] == 'unix:///var/run/cri-dockerd.sock'
 
