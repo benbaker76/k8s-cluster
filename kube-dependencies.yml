@@ -124,6 +124,19 @@
         mode: 0755
         owner: root
 
+    - name: install etcdctl
+      unarchive:
+        src: https://github.com/etcd-io/etcd/releases/download/v3.4.20/etcd-v3.4.20-linux-amd64.tar.gz
+        dest: /usr/bin
+        extra_opts:
+          - --strip=1
+          - --wildcards
+          - '*/etcdctl'
+        remote_src: yes
+        owner: root
+        group: root        
+        mode: 0755
+
     - name: install kubectl
       apt:
         name: kubectl={{ hostvars[inventory_hostname]['k8s_version'] }}-00
