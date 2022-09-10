@@ -121,13 +121,14 @@
       get_url:
         url: https://github.com/projectcalico/calicoctl/releases/latest/download/calicoctl-linux-amd64
         dest: /usr/local/bin/calicoctl
-        mode: 0755
         owner: root
+        group: root        
+        mode: 0755
 
     - name: install etcdctl
       unarchive:
         src: https://github.com/etcd-io/etcd/releases/download/v3.4.20/etcd-v3.4.20-linux-amd64.tar.gz
-        dest: /usr/bin
+        dest: /usr/local/bin
         extra_opts:
           - --strip=1
           - --wildcards
