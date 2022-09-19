@@ -158,6 +158,7 @@
         block: |
           source <(kubectl completion bash)
           export KUBE_EDITOR=nano
+          export PATH=$HOME/.krew/bin:$PATH
         create: true
 
     - name: set crictl endpoint

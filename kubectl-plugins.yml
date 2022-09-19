@@ -1,0 +1,32 @@
+- hosts: control_plane
+  become: yes
+  become_user: root
+  user: ubuntu
+  environment:
+    PATH: /home/ubuntu/.krew/bin:{{ ansible_env.PATH }}
+  tasks:
+    - name: install krew
+      become: yes
+      become_user: ubuntu
+      unarchive:
+        src: https://github.com/kubernetes-sigs/krew/releases/latest/download/krew-linux_amd64.tar.gz
+        dest: $HOME
+        extra_opts:
+          - --strip=1
+          - --wildcards
+          - '*/krew-linux_amd64'
+        remote_src: yes
+        mode: 0755
+
+    - name: install krew
+      become: yes
+      become_user: ubuntu
+      shell: ./krew-linux_amd64 install krew
+      args:
+        chdir: $HOME
+
+    - name: install flame
+      become: yes
+      become_user: ubuntu
+      shell: kubectl krew install flame
+
