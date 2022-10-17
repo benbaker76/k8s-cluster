@@ -109,8 +109,9 @@
         name: "{{ item }}"
         selection: hold
       loop:
-        - kubelet
         - kubeadm
+        - kubectl
+        - kubelet
 
 - hosts: control_plane
   become: yes
@@ -145,18 +146,24 @@
         force: yes
         allow_downgrade: true
 
-    - name: prevent kubectl from being upgraded
+    - name: prevent packages from being upgraded
       dpkg_selections:
-        name: kubectl
+        name: "{{ item }}"
         selection: hold
+      loop:
+        - kubeadm
+        - kubectl
+        - kubelet
 
-    - name: add kubectl completion bash to .bashrc
+    - name: add kubectl alias and completion bash to .bashrc
       become: yes
       become_user: ubuntu
       blockinfile:
         path: $HOME/.bashrc
         block: |
           source <(kubectl completion bash)
+          alias k=kubectl
+          complete -o default -F __start_kubectl k
           export KUBE_EDITOR=nano
           export PATH=$HOME/.krew/bin:$PATH
         create: true
