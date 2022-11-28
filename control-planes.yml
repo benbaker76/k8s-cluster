@@ -1,4 +1,3 @@
-- import_playbook: globals.yml
 - import_playbook: reset-nodes.yml
 
 - hosts: mycluster-cp1
@@ -20,7 +19,7 @@
         - cri-docker
 
     - name: initialize the node
-      shell: kubeadm init --control-plane-endpoint={{ hostvars[inventory_hostname]['cp_endpoint'] }} --kubernetes-version={{ hostvars[inventory_hostname]['k8s_version'] }} --node-name={{ inventory_hostname }} --pod-network-cidr={{ hostvars[inventory_hostname]['pod_network_cidr'] }} --service-cidr={{ hostvars[inventory_hostname]['service_cidr'] }} --cri-socket={{ hostvars[inventory_hostname]['cri_socket'] }} --v=9 > kubeadm_init.txt
+      shell: kubeadm init --control-plane-endpoint={{ cp_endpoint }} --kubernetes-version={{ k8s_version }} --node-name={{ inventory_hostname }} --pod-network-cidr={{ pod_network_cidr }} --service-cidr={{ service_cidr }} --cri-socket={{ cri_socket }} --v=9 > kubeadm_init.txt
       args:
         chdir: $HOME
 
@@ -62,7 +61,7 @@
     - name: set calico env variables
       become: yes
       become_user: ubuntu
-      shell: kubectl set env daemonset/calico-node -n kube-system IP_AUTODETECTION_METHOD=interface={{ hostvars[inventory_hostname]['interface'] }}
+      shell: kubectl set env daemonset/calico-node -n kube-system IP_AUTODETECTION_METHOD=interface={{ interface }}
 
     - name: upload certs
       become: yes
@@ -88,7 +87,7 @@
       set_fact:
         join_command: "{{ join_command_raw.stdout_lines[0] }}"
 
-    - debug: msg="{{ hostvars['mycluster-cp1'].join_command }} --node-name={{ inventory_hostname }} --cri-socket={{ hostvars[inventory_hostname]['pod_network_cidr'] }} --certificate-key={{ hostvars['mycluster-cp1'].certificate_key }} --control-plane --ignore-preflight-errors=all --v=5 > kubeadm_cp_join.txt"
+    - debug: msg="{{ hostvars['mycluster-cp1'].join_command }} --node-name={{ inventory_hostname }} --cri-socket={{ pod_network_cidr }} --certificate-key={{ hostvars['mycluster-cp1'].certificate_key }} --control-plane --ignore-preflight-errors=all --v=5 > kubeadm_cp_join.txt"
  
 - hosts: control_plane
   become: yes
@@ -96,7 +95,7 @@
   user: ubuntu
   tasks:
     - name: join cluster
-      shell: "{{ hostvars['mycluster-cp1'].join_command }} --node-name={{ inventory_hostname }} --cri-socket={{ hostvars[inventory_hostname]['cri_socket'] }} --certificate-key={{ hostvars['mycluster-cp1'].certificate_key }} --control-plane --ignore-preflight-errors=all --v=5 > kubeadm_cp_join.txt"
+      shell: "{{ hostvars['mycluster-cp1'].join_command }} --node-name={{ inventory_hostname }} --cri-socket={{ cri_socket }} --certificate-key={{ hostvars['mycluster-cp1'].certificate_key }} --control-plane --ignore-preflight-errors=all --v=5 > kubeadm_cp_join.txt"
       args:
         chdir: $HOME
       when: inventory_hostname != "mycluster-cp1"

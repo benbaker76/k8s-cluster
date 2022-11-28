@@ -1,5 +1,3 @@
-- import_playbook: globals.yml
-
 - hosts: all
   become: yes
   become_user: root
@@ -63,7 +61,7 @@
     - name: add cp endpoint to hosts
       lineinfile:
         path: /etc/hosts
-        line: "{{ hostvars[inventory_hostname]['cp_endpoint_ip'] }} {{ hostvars[inventory_hostname]['cp_endpoint'] }}"
+        line: "{{ cp_endpoint_ip }} {{ cp_endpoint }}"
 
     - name: add nodes to hosts
       lineinfile:
@@ -93,14 +91,14 @@
 
     - name: install kubelet
       apt:
-        name: kubelet={{ hostvars[inventory_hostname]['k8s_version'] }}-00
+        name: kubelet={{ k8s_version }}-00
         state: present
         update_cache: true
         allow_downgrade: true
 
     - name: install kubeadm
       apt:
-        name: kubeadm={{ hostvars[inventory_hostname]['k8s_version'] }}-00
+        name: kubeadm={{ k8s_version }}-00
         state: present
         allow_downgrade: true
 
@@ -141,7 +139,7 @@
 
     - name: install kubectl
       apt:
-        name: kubectl={{ hostvars[inventory_hostname]['k8s_version'] }}-00
+        name: kubectl={{ k8s_version }}-00
         state: present
         force: yes
         allow_downgrade: true
@@ -169,14 +167,14 @@
         create: true
 
     - name: set crictl endpoint
-      shell: crictl config --set runtime-endpoint={{ hostvars[inventory_hostname]['cri_socket'] }} --set image-endpoint={{ hostvars[inventory_hostname]['cri_socket'] }}
+      shell: crictl config --set runtime-endpoint={{ cri_socket }} --set image-endpoint={{ cri_socket }}
 
 - import_playbook: cri-cri-o.yml
-  when: hostvars[inventory_hostname]['cri_socket'] == 'unix:///var/run/crio/crio.sock'
+  when: cri_socket == 'unix:///var/run/crio/crio.sock'
 
 - import_playbook: cri-containerd.yml
-  when: hostvars[inventory_hostname]['cri_socket'] == 'unix:///run/containerd/containerd.sock'
+  when: cri_socket == 'unix:///run/containerd/containerd.sock'
 
 - import_playbook: cri-docker.yml
-  when: hostvars[inventory_hostname]['cri_socket'] == 'unix:///var/run/cri-dockerd.sock'
+  when: cri_socket == 'unix:///var/run/cri-dockerd.sock'
 

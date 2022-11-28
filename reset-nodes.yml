@@ -1,12 +1,10 @@
-- import_playbook: globals.yml
-
 - hosts: all
   become: yes
   become_user: root
   user: ubuntu
   tasks:
     - name: reset the node
-      shell: kubeadm reset --force --cri-socket={{ hostvars[inventory_hostname]['cri_socket'] }}
+      shell: kubeadm reset --force --cri-socket={{ cri_socket }}
 
     - name: clean cni
       file:
@@ -31,7 +29,7 @@
         state: absent
 
     - name: daemon reload
-      shell:  systemctl daemon-reload
+      shell: systemctl daemon-reload
       ignore_errors: true
 
     - name: stop kubelet

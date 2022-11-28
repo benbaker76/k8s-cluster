@@ -1,5 +1,3 @@
-- import_playbook: globals.yml
-
 - hosts: control_plane
   become: yes
   become_user: root
@@ -23,10 +21,10 @@
   become_user: root
   user: ubuntu
   tasks:
-    - debug: msg="{{ hostvars['mycluster-cp1'].join_command }} --node-name={{ inventory_hostname }} --cri-socket={{ hostvars[inventory_hostname]['pod_network_cidr'] }} --ignore-preflight-errors=all --v=5 > kubeadm_cp_join.txt"
+    - debug: msg="{{ hostvars['mycluster-cp1'].join_command }} --node-name={{ inventory_hostname }} --cri-socket={{ pod_network_cidr }} --ignore-preflight-errors=all --v=5 > kubeadm_cp_join.txt"
 
     - name: join cluster
-      shell: "{{ hostvars['mycluster-cp1'].join_command }} --node-name={{ inventory_hostname }} --cri-socket={{ hostvars[inventory_hostname]['cri_socket'] }} --ignore-preflight-errors=all --v=5 > kubeadm_cp_join.txt"
+      shell: "{{ hostvars['mycluster-cp1'].join_command }} --node-name={{ inventory_hostname }} --cri-socket={{ cri_socket }} --ignore-preflight-errors=all --v=5 > kubeadm_cp_join.txt"
       args:
         chdir: $HOME
 

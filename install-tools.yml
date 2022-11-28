@@ -1,0 +1,14 @@
+- hosts: control_plane
+  become: yes
+  become_user: root
+  user: ubuntu
+  gather_facts: false
+  tasks:
+    - name: install tools
+      apt:
+        name:
+          - jq
+          - tmux
+          - curl
+          - man
+        state: present
