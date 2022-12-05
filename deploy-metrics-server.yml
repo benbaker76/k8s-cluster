@@ -5,7 +5,7 @@
   tasks:
     - name: download metrics-server
       get_url:
-        url: https://github.com/kubernetes-sigs/metrics-server/releases/download/v0.6.1/components.yaml
+        url: https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
         dest: $HOME/deploy-metrics-server.yml
 
     - name: add --kubelet-insecure-tls arg
