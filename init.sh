@@ -14,4 +14,3 @@ ssh-keygen -R mycluster-w1
 ssh-keygen -R mycluster-w2
 ssh-keygen -R mycluster-w3
 ssh-keygen -R mycluster-w4
-

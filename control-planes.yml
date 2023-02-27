@@ -50,7 +50,7 @@
     - name: install cni
       become: yes
       become_user: ubuntu
-      shell: kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml --v=5 > calico.txt
+      shell: kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.25.0/manifests/calico.yaml --v=5 > calico.txt
       args:
         chdir: $HOME
       register: result
@@ -88,7 +88,7 @@
         join_command: "{{ join_command_raw.stdout_lines[0] }}"
 
     - debug: msg="{{ hostvars['mycluster-cp1'].join_command }} --node-name={{ inventory_hostname }} --cri-socket={{ pod_network_cidr }} --certificate-key={{ hostvars['mycluster-cp1'].certificate_key }} --control-plane --ignore-preflight-errors=all --v=5 > kubeadm_cp_join.txt"
- 
+
 - hosts: control_plane
   become: yes
   become_user: root
@@ -132,3 +132,10 @@
         state: restarted
       ignore_errors: true
 
+    - name: restart containerd
+      systemd:
+        name: containerd
+        daemon_reload: yes
+        enabled: yes
+        state: restarted
+      ignore_errors: true

@@ -51,8 +51,8 @@
     - name: install a list of packages
       apt:
         pkg:
-        - apt-transport-https
-        - net-tools
+          - apt-transport-https
+          - net-tools
 
     - name: set hostname
       hostname:
@@ -66,7 +66,7 @@
     - name: add nodes to hosts
       lineinfile:
         dest: /etc/hosts
-        regexp: '.*{{ item }}$'
+        regexp: ".*{{ item }}$"
         line: "{{ hostvars[item].ansible_host }} {{ item }}"
         state: present
       when: hostvars[item].ansible_host is defined
@@ -76,6 +76,10 @@
       apt_key:
         url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
         state: present
+      register: apt_res
+      retries: 10
+      delay: 10
+      until: apt_res is success
 
     - name: add k8s apt repo
       apt_repository:
@@ -94,13 +98,13 @@
         name: kubelet={{ k8s_version }}-00
         state: present
         update_cache: true
-        allow_downgrade: true
+        allow_change_held_packages: true
 
     - name: install kubeadm
       apt:
         name: kubeadm={{ k8s_version }}-00
         state: present
-        allow_downgrade: true
+        allow_change_held_packages: true
 
     - name: prevent packages from being upgraded
       dpkg_selections:
@@ -121,20 +125,20 @@
         url: https://github.com/projectcalico/calicoctl/releases/latest/download/calicoctl-linux-amd64
         dest: /usr/local/bin/calicoctl
         owner: root
-        group: root        
+        group: root
         mode: 0755
 
     - name: install etcdctl
       unarchive:
-        src: https://github.com/etcd-io/etcd/releases/download/v3.4.20/etcd-v3.4.20-linux-amd64.tar.gz
+        src: https://github.com/etcd-io/etcd/releases/download/v3.5.7/etcd-v3.5.7-linux-amd64.tar.gz
         dest: /usr/local/bin
         extra_opts:
           - --strip=1
           - --wildcards
-          - '*/etcdctl'
+          - "*/etcdctl"
         remote_src: yes
         owner: root
-        group: root        
+        group: root
         mode: 0755
 
     - name: install kubectl
@@ -142,7 +146,7 @@
         name: kubectl={{ k8s_version }}-00
         state: present
         force: yes
-        allow_downgrade: true
+        allow_change_held_packages: true
 
     - name: prevent packages from being upgraded
       dpkg_selections:
@@ -177,4 +181,3 @@
 
 - import_playbook: cri-docker.yml
   when: cri_socket == 'unix:///var/run/cri-dockerd.sock'
-

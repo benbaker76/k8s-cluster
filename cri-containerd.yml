@@ -9,6 +9,17 @@
         state: present
         force: yes
 
+    - name: update containerd
+      unarchive:
+        src: https://github.com/containerd/containerd/releases/download/v1.6.16/containerd-1.6.16-linux-amd64.tar.gz
+        dest: /usr/bin
+        extra_opts:
+          - --strip=1
+        remote_src: yes
+        owner: root
+        group: root
+        mode: 0755
+
     - name: set containerd defaults
       shell: |
         mkdir -p /etc/containerd
@@ -24,4 +35,4 @@
       systemd:
         name: containerd
         state: restarted
-
+        masked: no
