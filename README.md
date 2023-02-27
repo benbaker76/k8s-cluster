@@ -2,7 +2,7 @@
 
 If you have a decent multi-core CPU with enough RAM running Ubuntu there's no reason not to use it for your Kubernetes home lab instead of a cloud service.
 
-You should already have QEMU/KVM setup and an ssh key created using `ssh-keygen -t rsa`.
+You should already have [Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html) and [QEMU/KVM](https://www.tecmint.com/install-qemu-kvm-ubuntu-create-virtual-machines) setup and an ssh key created using `ssh-keygen -t rsa`.
 
 First thing you need to do is make sure you have a virtual bridge. In Ubuntu 22.04 you should already have one called `virbr0`.
 
