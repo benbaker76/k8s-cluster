@@ -160,8 +160,8 @@ k8s_version=1.26.0
 pod_network_cidr=172.16.0.0/16
 service_cidr=10.96.0.0/12
 #cri_socket=unix:///var/run/crio/crio.sock
-#cri_socket=unix:///run/containerd/containerd.sock
 cri_socket=unix:///run/containerd/containerd.sock
+#cri_socket=unix:///var/run/cri-dockerd.sock
 ```
 
 Then run the `bootstrap.sh` script:
