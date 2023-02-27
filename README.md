@@ -178,5 +178,4 @@ All the source code to this project is available at https://github.com/benbaker7
 
 This concludes the tutorial and thanks for reading!
 
-[](images/shopnow.png)
 [![Shop Now](images/shopnow.png)](https://www.teepublic.com/t-shirt/40083218-pixelated-kubernetes)
