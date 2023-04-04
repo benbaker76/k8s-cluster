@@ -11,7 +11,7 @@
 
     - name: update containerd
       unarchive:
-        src: https://github.com/containerd/containerd/releases/download/v1.6.16/containerd-1.6.16-linux-amd64.tar.gz
+        src: https://github.com/containerd/containerd/releases/download/v1.6.19/containerd-1.6.19-linux-amd64.tar.gz
         dest: /usr/bin
         extra_opts:
           - --strip=1
