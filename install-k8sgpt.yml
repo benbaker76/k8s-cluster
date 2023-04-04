@@ -1,0 +1,23 @@
+- hosts: control_plane
+  become: yes
+  become_user: ubuntu
+  user: ubuntu
+  tasks:
+    - name: install k8sgpt
+      apt:
+        deb: https://github.com/k8sgpt-ai/k8sgpt/releases/download/v0.1.8/k8sgpt_amd64.deb
+      become: yes
+      become_user: root
+      when: hostvars[inventory_hostname].ansible_host == cp_endpoint_ip
+
+    - name: k8sgpt auth
+      command: k8sgpt auth --password <password>
+      when: hostvars[inventory_hostname].ansible_host == cp_endpoint_ip
+
+    - name: k8sgpt analyze
+      command: k8sgpt analyze --explain
+      register: k8sgpt
+      when: hostvars[inventory_hostname].ansible_host == cp_endpoint_ip
+
+    - debug: msg="{{ k8sgpt.stdout }}"
+      when: hostvars[inventory_hostname].ansible_host == cp_endpoint_ip
