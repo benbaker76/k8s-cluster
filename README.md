@@ -172,36 +172,23 @@ $ ./bootstrap.sh
 
 By default it will install `containerd` CRI but it also includes scripts for installing `cri-o` and `docker` (just uncommment the appropriate `cri_socket` variable in the `hosts.ini` script).
 
-## Create Config Remotely
+## Access the Cluster Locally
 
-If you want to be able use `kubectl` on your ` control-plane` we need to copy `/etc/kubernetes/admin.conf `to`/home/ubuntu/.kube/config`.
-
-```sh
-$ ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ubuntu@192.168.122.191 mkdir /home/ubuntu/.kube
-$ ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ubuntu@192.168.122.191 sudo cp /etc/kubernetes/admin.conf /home/ubuntu/.kube/config
-$ ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ubuntu@192.168.122.191 sudo chmod +r /home/ubuntu/.kube/config
-```
-
-## Copy Config Locally
-
-Now lets copy the that config back to our local machine so we can use `kubectl` on it too.
+Copy the `config` from the control-plane to our local machine so we can use `kubectl` to access the cluster.
 
 ```sh
-$ scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ubuntu@192.168.122.191:/home/ubuntu/.kube/config ~/.kube
+$ mkdir $HOME/.kube
+$ scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ubuntu@192.168.122.191:/home/ubuntu/.kube/config $HOME/.kube
 ```
 
-## Install Kubectl Locally
-
-Now install `kubectl` on your local machine so you can access your cluster remotely. Make sure you install the matching Kubernetes version and put updates for it on hold.
+Install `kubectl` with the same Kubernetes version and put updates for it on hold.
 
 ```sh
 $ sudo apt install kubectl=1.26.0-00
 $ sudo apt-mark hold kubectl
 ```
 
-## Code Completion, Editor and Alias
-
-Finally we can edit our `.bashrc` file to add code completion using the `tab` key, our favorite text editor `nano` for `kubectl edit` and an alias so we can run `k get pods`.
+Finally edit the `.bashrc` file to add code completion using the `tab` key, set `nano` as the default text editor for `kubectl edit` and add an alias for `kubectl` so we can run `k get pods`.
 
 ```sh
 $ nano $HOME/.bashrc
@@ -216,7 +203,11 @@ complete -o default -F __start_kubectl k
 export KUBE_EDITOR=nano
 ```
 
-Reboot or run `source $HOME/.bashrc` and you should be good to go!
+Reboot or run `source $HOME/.bashrc` and you should now be able to list the pods in the cluster by running:
+
+```sh
+$ k get pods -A
+```
 
 ## Source Code
 
