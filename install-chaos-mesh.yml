@@ -1,0 +1,15 @@
+- hosts: control_plane
+  become: yes
+  become_user: ubuntu
+  user: ubuntu
+  tasks:
+    - name: download chaos-mesh installer
+      get_url:
+        url: https://mirrors.chaos-mesh.org/v2.5.1/install.sh
+        dest: /tmp/chaos-mesh-installer.sh
+        mode: 0755
+      when: hostvars[inventory_hostname].ansible_host == cp_endpoint_ip
+
+    - name: install chaos-mesh
+      shell: /tmp/chaos-mesh-installer.sh
+      when: hostvars[inventory_hostname].ansible_host == cp_endpoint_ip

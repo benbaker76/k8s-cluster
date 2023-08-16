@@ -5,17 +5,17 @@
   tasks:
     - name: install k8sgpt
       apt:
-        deb: https://github.com/k8sgpt-ai/k8sgpt/releases/download/v0.1.8/k8sgpt_amd64.deb
+        deb: https://github.com/k8sgpt-ai/k8sgpt/releases/download/v0.2.1/k8sgpt_amd64.deb
       become: yes
       become_user: root
       when: hostvars[inventory_hostname].ansible_host == cp_endpoint_ip
 
     - name: k8sgpt auth
-      command: k8sgpt auth --password <password>
+      command: k8sgpt auth --password OPENAI_API_KEY {{ lookup('env','OPENAI_API_KEY') }}
       when: hostvars[inventory_hostname].ansible_host == cp_endpoint_ip
 
     - name: k8sgpt analyze
-      command: k8sgpt analyze --explain
+      command: k8sgpt analyze --explain --filter=Pod --namespace=sock-shop
       register: k8sgpt
       when: hostvars[inventory_hostname].ansible_host == cp_endpoint_ip
 
