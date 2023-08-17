@@ -129,6 +129,20 @@ Vagrant.configure("2") do |config|
 end
 ```
 
+Install the `vagrant-libvirt` plugin:
+
+```
+$ vagrant plugin install vagrant-libvirt
+Installing the 'vagrant-libvirt' plugin. This can take a few minutes...
+Fetching nokogiri-1.15.4-x86_64-linux.gem
+Building native extensions. This could take a while...
+Fetching vagrant-libvirt-0.12.2.gem
+Successfully uninstalled vagrant-libvirt-0.11.2
+Removing nokogiri
+Successfully uninstalled nokogiri-1.15.4-x86_64-linux
+Installed the plugin 'vagrant-libvirt (0.12.2)'!
+```
+
 Run the following command to provision the VMs' in QEMU/KVM
 
 ```sh
