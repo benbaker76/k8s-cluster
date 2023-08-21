@@ -32,6 +32,11 @@ Vagrant.configure("2") do |config|
   config.vm.provision 'file', source: './hosts', destination: '/tmp/hosts'
 
   config.vm.provision 'shell', privileged: true, inline: <<-SCRIPT
+    sudo systemctl enable serial-getty@ttyS0.service
+    sudo systemctl start serial-getty@ttyS0.service
+    sudo sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT==" net.ifnames=0 biosdevname=0"/GRUB_CMDLINE_LINUX_DEFAULT="console=tty0 console=ttyS0 net.ifnames=0 biosdevname=0"/' /etc/default/grub
+    sudo sed -i 's/#GRUB_TERMINAL=console/GRUB_TERMINAL="serial console"/' /etc/default/grub
+    sudo update-grub
     sudo swapoff -a
     sudo sed -i '/swap/d' /etc/fstab
     sudo echo 'ubuntu ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/ubuntu
