@@ -12,4 +12,3 @@
       shell: kubectl apply -f nginx.yaml --v=5 > nginx.txt
       args:
         chdir: $HOME
-

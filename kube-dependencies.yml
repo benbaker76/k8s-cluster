@@ -127,6 +127,17 @@
         owner: root
         group: root
         mode: 0755
+      when: cni_plugin == 'calico'
+
+    - name: install cilium
+      unarchive:
+        src: https://github.com/cilium/cilium-cli/releases/latest/download/cilium-linux-amd64.tar.gz
+        dest: /usr/local/bin
+        remote_src: yes
+        owner: root
+        group: root
+        mode: 0755
+      when: cni_plugin == 'cilium'
 
     - name: install etcdctl
       unarchive:

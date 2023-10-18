@@ -9,7 +9,7 @@
         dest: $HOME/deploy-metrics-server.yml
 
     - name: add --kubelet-insecure-tls arg
-      lineinfile: 
+      lineinfile:
         path: $HOME/deploy-metrics-server.yml
         insertafter: "args:"
         line: "        - --kubelet-insecure-tls"
@@ -18,4 +18,3 @@
       shell: kubectl apply -f deploy-metrics-server.yml --v=5 > deploy_metrics_server.txt
       args:
         chdir: $HOME
-

@@ -9,7 +9,7 @@
         dest: $HOME/deploy-k8s-dashboard.yml
 
     - name: add NodePort
-      lineinfile: 
+      lineinfile:
         path: $HOME/deploy-k8s-dashboard.yml
         insertafter: "targetPort: 8443"
         line: "      nodePort: 32001\n  type: NodePort"
@@ -40,6 +40,4 @@
       set_fact:
         k8s_dashboard_token: "{{ k8s_dashboard_token.stdout_lines[0] }}"
 
-    - debug:
-        var=hostvars['mycluster-cp1'].k8s_dashboard_token
-
+    - debug: var=hostvars['mycluster-cp1'].k8s_dashboard_token

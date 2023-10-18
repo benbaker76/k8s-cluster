@@ -57,11 +57,21 @@
       until: result.rc == 0
       retries: 10
       delay: 20
+      when: cni_plugin == 'calico'
 
     - name: set calico env variables
       become: yes
       become_user: ubuntu
       shell: kubectl set env daemonset/calico-node -n kube-system IP_AUTODETECTION_METHOD=interface={{ interface }}
+      when: cni_plugin == 'calico'
+
+    - name: install cni
+      become: yes
+      become_user: ubuntu
+      shell: cilium install --helm-set kubeProxyReplacement=strict --helm-set k8sServiceHost={{ cp_endpoint_ip }} --helm-set k8sServicePort=6443 --helm-set ingressController.enabled=true --helm-set ingressController.loadbalancerMode=shared --helm-set bgpControlPlane.enabled=true > cilium.txt
+      args:
+        chdir: $HOME
+      when: cni_plugin == 'cilium'
 
     - name: upload certs
       become: yes
