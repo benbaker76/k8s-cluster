@@ -68,7 +68,7 @@
     - name: install cni
       become: yes
       become_user: ubuntu
-      shell: cilium install --helm-set kubeProxyReplacement=strict --helm-set k8sServiceHost={{ cp_endpoint_ip }} --helm-set k8sServicePort=6443 --helm-set ingressController.enabled=true --helm-set ingressController.loadbalancerMode=shared --helm-set bgpControlPlane.enabled=true > cilium.txt
+      shell: cilium install > cilium.txt
       args:
         chdir: $HOME
       when: cni_plugin == 'cilium'
