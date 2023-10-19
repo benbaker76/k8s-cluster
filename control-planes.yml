@@ -73,6 +73,12 @@
         chdir: $HOME
       when: cni_plugin == 'cilium'
 
+    - name: enable hubble
+      become: yes
+      become_user: ubuntu
+      shell: cilium hubble enable
+      when: cni_plugin == 'cilium'
+
     - name: upload certs
       become: yes
       become_user: ubuntu
