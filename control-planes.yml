@@ -75,7 +75,7 @@
     - name: install cni
       become: yes
       become_user: ubuntu
-      shell: cilium install --helm-set ipam.mode=kubernetes --helm-set tunnel=disabled --helm-set ipv4NativeRoutingCIDR="{{ pod_network_cidr }}" --helm-set bgpControlPlane.enabled=true --helm-set k8s.requireIPv4PodCIDR=true > cilium.txt
+      shell: cilium install --helm-set ipam.mode=kubernetes --helm-set tunnel=disabled --helm-set ipv4NativeRoutingCIDR="{{ pod_network_cidr }}" --helm-set bgpControlPlane.enabled=true --helm-set k8s.requireIPv4PodCIDR=true --helm-set l2announcements.enabled=true --helm-set externalIPs.enabled=true > cilium.txt
       args:
         chdir: $HOME
       when: cni_plugin == 'cilium'
